@@ -97,7 +97,7 @@ func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 	log.Println("Sending to LLM")
 	log.Println(postList)
 	log.Println(users)
-	// TODO: something with users and posts
+
 	summary, err := Summarize(bot.llmClient, postList, users)
 
 	if err != nil {
