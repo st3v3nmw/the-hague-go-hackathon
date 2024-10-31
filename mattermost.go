@@ -5,16 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
 const TDLR_COMMAND = "!mm-bot tldr"
+const TLDR_COMMAND_RESPONSE_FILTER = "TLDR:"
 
 func IsTDLRCommand(message string) bool {
 	return strings.TrimSpace(message) == TDLR_COMMAND
+}
+
+func IsTDLRResponse(message string) bool {
+	return strings.HasPrefix(strings.TrimSpace(message), TLDR_COMMAND_RESPONSE_FILTER)
 }
 
 // Provides a list of post messages from the same thread as `postId`, in reverse order.
@@ -29,7 +34,7 @@ func GetThread(bot *Bot, postId string) ([]*model.Post, error) {
 	postMessages := make([]*model.Post, 0, len(postsSlice))
 
 	for _, post := range postsSlice {
-		if !IsTDLRCommand(post.Message) {
+		if !IsTDLRCommand(post.Message) && !IsTDLRResponse(post.Message) {
 			postMessages = append(postMessages, post)
 		}
 	}
@@ -99,15 +104,15 @@ func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 	log.Println(users)
 
 	summary, err := Summarize(bot.llmClient, postList, users)
-
+	summaryWithPrefix := fmt.Sprintf("%s\n%s", TLDR_COMMAND_RESPONSE_FILTER, summary)
 	if err != nil {
 		log.Println("Error summarizing posts")
 		log.Println(err)
 		return
 	}
 
-	fmt.Println(summary)
-	sendMessage(bot.apiClient, rootID, post.ChannelId, summary)
+	fmt.Println(summaryWithPrefix)
+	sendMessage(bot.apiClient, rootID, post.ChannelId, summaryWithPrefix)
 }
 
 func getUsers(bot *Bot, ids []string) (map[string]*model.User, error) {
