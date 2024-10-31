@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -32,6 +33,11 @@ func GetThread(bot *Bot, postId string) ([]*model.Post, error) {
 			postMessages = append(postMessages, post)
 		}
 	}
+
+	slices.SortFunc(postMessages, func(a, b *model.Post) int {
+		return int(a.CreateAt - b.CreateAt)
+	})
+
 	return postMessages, nil
 }
 
