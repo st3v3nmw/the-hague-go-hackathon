@@ -12,7 +12,7 @@ import (
 
 func newLLMClient() (*ollama.LLM, error) {
 	url := os.Getenv("OLLAMA_URL")
-	llm, err := ollama.New(ollama.WithServerURL(url))
+	llm, err := ollama.New(ollama.WithServerURL(url), ollama.WithModel("llama3.2"))
 	if err != nil {
 		return nil, err
 	}
