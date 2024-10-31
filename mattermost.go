@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const TDLR_COMMAND = "!mm-bot tldr"
+const TDLR_COMMAND = "!tldr"
 const TLDR_COMMAND_RESPONSE_FILTER = "TLDR:"
 
 func IsTDLRCommand(message string) bool {
