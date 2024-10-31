@@ -3,12 +3,18 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/model"
-	"os"
+	"log"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
+
+const TDLR_COMMAND = "!mm-bot tldr"
+
+func IsTDLRCommand(message string) bool {
+	return strings.TrimSpace(message) == TDLR_COMMAND
+}
 
 // Provides a list of post messages from the same thread as `postId`, in reverse order.
 func GetThread(bot *Bot, postId string) ([]*model.Post, error) {
@@ -18,12 +24,21 @@ func GetThread(bot *Bot, postId string) ([]*model.Post, error) {
 		return nil, err
 	}
 
-	return postList.ToSlice(), nil
+	postsSlice := postList.ToSlice()
+	postMessages := make([]*model.Post, 0, len(postsSlice))
+
+	for _, post := range postsSlice {
+		if !IsTDLRCommand(post.Message) {
+			postMessages = append(postMessages, post)
+		}
+	}
+	return postMessages, nil
 }
 
 func listenToEvents(bot *Bot) {
 	for {
 		bot.wsClient.Listen()
+		log.Println("Listening for Mattermost events")
 
 		for event := range bot.wsClient.EventChannel {
 			go handleEvent(bot, event)
@@ -43,13 +58,9 @@ func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 		return
 	}
 
-	if post.UserId == os.Getenv("MM_USERID") {
-		return
-	}
-
 	message := post.Message
 
-	if strings.TrimSpace(message) != "!mm-bot tldr" {
+	if !IsTDLRCommand(message) {
 		return
 	}
 
