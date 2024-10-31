@@ -66,7 +66,7 @@ func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 
 	postList, err := GetThread(bot, post.Id)
 
-	rootID := postList[0].RootId
+	rootID := post.RootId
 
 	if err != nil {
 		log.Println("Error getting thread")
