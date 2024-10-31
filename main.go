@@ -3,14 +3,15 @@ package main
 import (
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/tmc/langchaingo/llms/ollama"
-	"github.com/joho/godotenv"
 )
 
 type Bot struct {
 	apiClient *model.Client4
-	wsClient *model.WebSocketClient
+	wsClient  *model.WebSocketClient
 	llmClient *ollama.LLM
 }
 
