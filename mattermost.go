@@ -66,6 +66,8 @@ func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 
 	postList, err := GetThread(bot, post.Id)
 
+	rootID := postList[0].RootId
+
 	if err != nil {
 		log.Println("Error getting thread")
 		log.Println(err)
@@ -99,6 +101,7 @@ func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 	}
 
 	fmt.Println(summary)
+	sendMessage(bot.apiClient, rootID, post.ChannelId, summary)
 }
 
 func getUsers(bot *Bot, ids []string) (map[string]*model.User, error) {
@@ -114,4 +117,14 @@ func getUsers(bot *Bot, ids []string) (map[string]*model.User, error) {
 	}
 
 	return userIds, nil
+}
+
+func sendMessage(client *model.Client4, rootPostID string, channelID string, message string) {
+	ctx := context.Background()
+	reply := model.Post{ChannelId: channelID, RootId: rootPostID, Message: message}
+	// post, resp, err := client.CreatePost(ctx, &reply)
+	client.CreatePost(ctx, &reply)
+	// fmt.Println(post)
+	// fmt.Println(resp)
+	// fmt.Println(err)
 }
