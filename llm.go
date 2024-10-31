@@ -30,11 +30,12 @@ func PromptLLM(llm *ollama.LLM, prompt string) (string, error) {
 	return completion, nil
 }
 
-func Summarize(llm *ollama.LLM, posts []model.Post, users []model.User) (string, error) {
+func Summarize(llm *ollama.LLM, posts []*model.Post, users map[string]*model.User) (string, error) {
 	prompt := "Summarize the following thread of messages: \n"
 
-	for i := range len(posts) {
-		prompt += fmt.Sprintf("%s: %s\n", users[i].Username, posts[i].Message)
+	for i := range posts {
+		user := users[posts[i].UserId]
+		prompt += fmt.Sprintf("%s: %s\n", user.Username, posts[i].Message)
 	}
 
 	return PromptLLM(llm, prompt)

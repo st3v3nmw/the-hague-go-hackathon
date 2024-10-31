@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"os"
@@ -10,8 +11,8 @@ import (
 )
 
 // Provides a list of post messages from the same thread as `postId`, in reverse order.
-func GetThread(client *model.Client4, postId string) ([]*model.Post, error) {
-	postList, _, err := client.GetPostThread(context.Background(), postId, "", false)
+func GetThread(bot *Bot, postId string) ([]*model.Post, error) {
+	postList, _, err := bot.apiClient.GetPostThread(context.Background(), postId, "", false)
 
 	if err != nil {
 		return nil, err
@@ -20,17 +21,17 @@ func GetThread(client *model.Client4, postId string) ([]*model.Post, error) {
 	return postList.ToSlice(), nil
 }
 
-func listenToEvents(wsClient *model.WebSocketClient) {
+func listenToEvents(bot *Bot) {
 	for {
-		wsClient.Listen()
+		bot.wsClient.Listen()
 
-		for event := range wsClient.EventChannel {
-			go handleEvent(wsClient, event)
+		for event := range bot.wsClient.EventChannel {
+			go handleEvent(bot, event)
 		}
 	}
 }
 
-func handleEvent(wsClient *model.WebSocketClient, event *model.WebSocketEvent) {
+func handleEvent(bot *Bot, event *model.WebSocketEvent) {
 	if event.EventType() != model.WebsocketEventPosted {
 		return
 	}
@@ -52,6 +53,54 @@ func handleEvent(wsClient *model.WebSocketClient, event *model.WebSocketEvent) {
 		return
 	}
 
-	// TODO: get thread for post and summarize it
-	fmt.Println(post)
+	postList, err := GetThread(bot, post.Id)
+
+	if err != nil {
+		log.Println("Error getting thread")
+		log.Println(err)
+		return
+	}
+
+	userIds := make([]string, len(postList))
+
+	for _, post := range postList {
+		userIds = append(userIds, post.UserId)
+	}
+
+	users, err := getUsers(bot, userIds)
+
+	if err != nil {
+		log.Println("Error getting usernames")
+		log.Println(err)
+		return
+	}
+
+	log.Println("Sending to LLM")
+	log.Println(postList)
+	log.Println(users)
+	// TODO: something with users and posts
+	summary, err := Summarize(bot.llmClient, postList, users)
+
+	if err != nil {
+		log.Println("Error summarizing posts")
+		log.Println(err)
+		return
+	}
+
+	fmt.Println(summary)
+}
+
+func getUsers(bot *Bot, ids []string) (map[string]*model.User, error) {
+	userList, _, err := bot.apiClient.GetUsersByIds(context.Background(), ids)
+
+	if err != nil {
+		return nil, err
+	}
+
+	userIds := make(map[string]*model.User)
+	for _, user := range userList {
+		userIds[user.Id] = user
+	}
+
+	return userIds, nil
 }
