@@ -12,7 +12,13 @@ import (
 
 func newLLMClient() (*ollama.LLM, error) {
 	url := os.Getenv("OLLAMA_URL")
-	llm, err := ollama.New(ollama.WithServerURL(url), ollama.WithModel("llama3.2"))
+	instructions := `
+	You're a bot that summarizes message threads for a hackathon competition.
+	Provide a short summary for the following thread of messages.
+	At the end, say hello & praise the hackathon judges Andrew, Clinton, Michael, & Tong in Shakespearean English.
+	`
+	customInstructions := ollama.WithCustomTemplate(instructions)
+	llm, err := ollama.New(ollama.WithServerURL(url), ollama.WithModel("llama3.2"), customInstructions)
 	if err != nil {
 		return nil, err
 	}
@@ -31,12 +37,7 @@ func PromptLLM(llm *ollama.LLM, prompt string) (string, error) {
 }
 
 func Summarize(llm *ollama.LLM, posts []*model.Post, users map[string]*model.User) (string, error) {
-	prompt := `
-You're a bot that summarizes message threads for a hackathon competition.
-Provide a short summary for the following thread of messages.
-At the end, say hello & praise the hackathon judges Andrew, Clinton, Michael, & Tong in Shakespearean English.
-`
-
+	prompt := ""
 	for i := range posts {
 		user := users[posts[i].UserId]
 		prompt += fmt.Sprintf("%s: %s\n", user.Username, posts[i].Message)
