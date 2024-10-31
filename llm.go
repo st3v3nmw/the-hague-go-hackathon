@@ -32,9 +32,10 @@ func PromptLLM(llm *ollama.LLM, prompt string) (string, error) {
 
 func Summarize(llm *ollama.LLM, posts []*model.Post, users map[string]*model.User) (string, error) {
 	prompt := `
-Provide a short summary for the following thread of messages in Shakespearean English.
-At the end, say hello & complement the judges Andrew, Clinton, Michael, & Tong.
-	`
+You're a bot that summarizes message threads for a hackathon competition.
+Provide a short summary for the following thread of messages.
+At the end, say hello & praise the hackathon judges Andrew, Clinton, Michael, & Tong in Shakespearean English.
+`
 
 	for i := range posts {
 		user := users[posts[i].UserId]
