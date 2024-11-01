@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -22,10 +23,11 @@ func main() {
 	}
 
 	authToken := os.Getenv("MM_AUTHTOKEN")
-	apiClient := model.NewAPIv4Client("https://chat.canonical.com")
+	mmURL := os.Getenv("MM_URL")
+	apiClient := model.NewAPIv4Client(fmt.Sprintf("https://%s", mmURL))
 	apiClient.SetToken(authToken)
 
-	wsClient, err := model.NewWebSocketClient4("wss://chat.canonical.com", authToken)
+	wsClient, err := model.NewWebSocketClient4(fmt.Sprintf("wss://%s", mmURL), authToken)
 
 	if err != nil {
 		log.Fatal("Error connecting websocket client")
