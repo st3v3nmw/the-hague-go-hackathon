@@ -133,9 +133,5 @@ func getUsers(bot *Bot, ids []string) (map[string]*model.User, error) {
 func sendMessage(client *model.Client4, rootPostID string, channelID string, message string) {
 	ctx := context.Background()
 	reply := model.Post{ChannelId: channelID, RootId: rootPostID, Message: message}
-	// post, resp, err := client.CreatePost(ctx, &reply)
 	client.CreatePost(ctx, &reply)
-	// fmt.Println(post)
-	// fmt.Println(resp)
-	// fmt.Println(err)
 }
